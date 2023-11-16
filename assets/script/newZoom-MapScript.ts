@@ -6,7 +6,7 @@
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
 const {ccclass, property} = cc._decorator;
-
+var pos,oldpos
 @ccclass
 export default class NewClass extends cc.Component {
 
@@ -62,6 +62,22 @@ export default class NewClass extends cc.Component {
 
     private addEvent() {
         let self = this;
+        let startY = 0;
+
+// Event listener for touch start
+this.node.on('touchstart', (event) => {
+  // Get the initial vertical position of the touch
+  let touches: any[] = event.getTouches(); // Get all touch points
+   console.log(touches);
+   
+   var touch1 = touches[0].clientY;
+
+  startY = touch1;
+  console.log(startY,touches,touch1,"start in toucg start");
+  
+});
+
+
         this.node.on(cc.Node.EventType.TOUCH_MOVE, function (event: any) {
             if (self.locked) return;
 
@@ -71,38 +87,17 @@ export default class NewClass extends cc.Component {
                 console.log("multi");
                 
                 self.isMoving = true;
-                // let touch1: any = touches[0];
-                // let touch2: any = touches[1];
-                // let delta1: cc.Vec3 = touch1.getDelta();
-                // let delta2: cc.Vec3 = touch2.getDelta();
-
-                // let touchPoint1 = self.map.convertToNodeSpaceAR(new cc.Vec3(touch1.x,touch1.y,0));
-                // let touchPoint2 = self.map.convertToNodeSpaceAR(new cc.Vec3(touch2.x,touch2.y,0));
-                // let distance = touchPoint1.subtract(touchPoint2);
-                // let midPoint = touchPoint1.sub(touchPoint2).div(2);
-                // let delta: cc.Vec3 = delta1.subtract(delta2);
-                // let scale: number = 1;
-                // console.log(delta,distance,self.map.scale);
-                
-                // if (Math.abs(distance.x) > Math.abs(distance.y)) {
-                //     scale =  (distance.x + delta.x) / distance.x * self.map.scale;
-                // }
-                // else {
-                //     scale = (distance.y + delta.y) / distance.y * self.map.scale;
-                  
-
-                // }
                 
                 var touch1 = touches[0],
-                    touch2 = touches[1];
+                touch2 = touches[1];
                 var delta1 = touch1.getDelta();
                 var delta2 = touch2.getDelta();
                 var touchPoint1: cc.Vec2 = self.map.convertToNodeSpaceAR(touch1.getLocation());
                 var touchPoint2: cc.Vec2 = self.map.convertToNodeSpaceAR(touch2.getLocation());
-
+                
                 let midPoint = self.map.convertToNodeSpaceAR(touch1.getLocation().add(touch2.getLocation()).div(2));
-             
-
+                
+                
                 var distance: cc.Vec2 = touchPoint1.sub(touchPoint2);
                 self.currentDistance = distance;
                 var delta: cc.Vec2 = delta1.sub(delta2);
@@ -112,18 +107,34 @@ export default class NewClass extends cc.Component {
                 } else {
                     scale = (distance.y + delta.y) / distance.y * self.map.scale;
                 }
-
+                
                 // let scale = (self.map.scale + (midPoint.y / self.increaseRate));
-                let pos = touchPoint2.add(cc.v2(distance.x / 2, distance.y / 2));// to finding midpoint
+                // if(self.anotherflag){
+                // pos = touchPoint2.add(cc.v2(distance.x / 2, distance.y / 2));// to finding midpoint
+                // oldpos = pos
+                // console.log("bef",self.anotherflag);
+                
+                // self.anotherflag = false;
+                // console.log("aft",self.anotherflag);
+                
+                // }
+                // if(!self.anotherflag){
+                //     pos = oldpos
+                // }
+                //     console.log(pos,self.anotherflag,oldpos,"same as midpoint or what");
+                
                 // console.log(pos,scale,delta,midPoint,distance,touchPoint1,touchPoint2,"pos scale delta,mid,dist,touch1,tiouch2");
                 // self.smoothOperate(self.map, midPoint, new cc.Vec3(scale,scale));
                 if(self.zoomFlag){
+                    pos = touchPoint2.add(cc.v2(distance.x / 2, distance.y / 2));
                     self.smoothOperate(self.map, pos, new cc.Vec3(scale,scale));
                     self.zoomFlag = false;
                     self.lastDistance = self.currentDistance;
                 }
 
                 else if(self.compareDistance(self.currentDistance,self.lastDistance)){
+                    pos = touchPoint2.add(cc.v2(distance.x / 2, distance.y / 2));
+                    
                     self.smoothOperate(self.map, pos, new cc.Vec3(scale,scale));
                     // console.log("when can this happen",self.currentDistance,self.lastDistance);
 
@@ -152,7 +163,7 @@ export default class NewClass extends cc.Component {
 
         this.node.on(cc.Node.EventType.TOUCH_END, function (event: any) {
             if (self.locked) return;
-            self.zoomFlag = true;
+                        self.zoomFlag = true;
             if (event.getTouches().length <= 1) {
                 if (!self.isMoving) {
                     let worldPos: cc.Vec3 = event.getLocation();
@@ -166,7 +177,7 @@ export default class NewClass extends cc.Component {
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, function (event: any) {
             if (self.locked) return;
 
-            self.zoomFlag = true;
+            // self.zoomFlag = true;
             if (event.getTouches().length <= 1) { // When there is only the last touch point in the container, the mobile flag is restored
                 self.isMoving = false;
             }
@@ -177,7 +188,7 @@ export default class NewClass extends cc.Component {
 
             let worldPos: cc.Vec3 = event.getLocation();
             let scrollDelta: number = event.getScrollY();
-            // console.log(event.getScrollY(),"sssssssssssssssssss");
+            console.log(event.getScrollY(),"scrollY");
             
             let scale: number = (self.map.scale + (scrollDelta / self.increaseRate));
 
